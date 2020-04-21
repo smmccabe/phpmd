@@ -173,9 +173,23 @@ class PHPMD
         array $renderers,
         RuleSetFactory $ruleSetFactory
     ) {
+        $report = $this->runReport($inputPath, $ruleSets, $ruleSetFactory);
+        $this->renderReport($renderers, $report);
+    }
 
+    /**
+     * This method will process all files that can be found in the given input
+     * path. It will apply rules defined in the comma-separated <b>$ruleSets</b>
+     * argument.
+     * 
+     * @param string $inputPath
+     * @param string $ruleSets
+     * @param \PHPMD\RuleSetFactory $ruleSetFactory
+     * @return \PHPMD\Report
+     */
+    public function runReport($inputPath, $ruleSets, $ruleSetFactory) {
         // Merge parsed excludes
-        $this->setIgnorePattern($ruleSetFactory->getIgnorePattern($ruleSets));
+        $this->ignorePatterns = array_merge($this->ignorePatterns, $ruleSetFactory->getIgnorePattern($ruleSets));
 
         $this->input = $inputPath;
 
@@ -192,6 +206,17 @@ class PHPMD
         $parser->parse($report);
         $report->end();
 
+        return $report;
+    }
+
+    /**
+     * Renders a report based on a supplied list of renderer.s
+     * 
+     * @param \PHPMD\AbstractRenderer[] $renderers
+     * @param \PHPMD\Report $report
+     * @return void
+     */
+    public function renderReport($renderers, $report) {
         foreach ($renderers as $renderer) {
             $renderer->start();
         }
